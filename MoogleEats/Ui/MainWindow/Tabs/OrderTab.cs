@@ -2,30 +2,80 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using static MoogleEats.Ui.Components;
 using System;
+using Discord.Webhook;
+using System.Collections.Generic;
+using System.Linq;
+using ImGuiNET;
 
 namespace MoogleEats.Ui.MainWindow
 {
     public partial class Tabs
     {
-        public static void OrderTab(OrderTabStore store, Action onCheckout)
+        public enum MenuItem
         {
-            NumericInput("Pizza (10,000g)", ref store.NPizzas);
-            store.NPizzas = Math.Max(store.NPizzas, 0);
+            Pizza,
+            GarlicBread,
+            BubbleTea,
+            KidsMeal,
+            Ratatouille,
+            ArchonBurger
+        }
 
-            NumericInput("Garlic Bread (5,000g)", ref store.NGarlicBread);
-            store.NGarlicBread = Math.Max(store.NGarlicBread, 0);
+        public static Dictionary<MenuItem, string> MenuItemNames = new() {
+            { MenuItem.Pizza, "Pizza" },
+            { MenuItem.GarlicBread, "Garlic Bread" },
+            { MenuItem.BubbleTea, "Bubble Tea" },
+            { MenuItem.KidsMeal, "Kid's Meal" },
+            { MenuItem.Ratatouille, "Ratatouille" },
+            { MenuItem.ArchonBurger, "Archon Burger" },
+        };
 
-            NumericInput("Bubble Tea (5,000g)", ref store.NBubbleTea);
-            store.NBubbleTea = Math.Max(store.NBubbleTea, 0);
+        public static Dictionary<MenuItem, uint> MenuItemPrices = new() {
+            { MenuItem.Pizza, 10000 },
+            { MenuItem.GarlicBread, 5000 },
+            { MenuItem.BubbleTea, 5000 },
+            { MenuItem.KidsMeal, 20000 },
+            { MenuItem.Ratatouille, 20000 },
+            { MenuItem.ArchonBurger, 10000 },
+        };
 
-            NumericInput("Kid's Meal (20,000g)", ref store.NKidsMeal);
-            store.NKidsMeal = Math.Max(store.NKidsMeal, 0);
+        public static void OrderTab(OrderTabStore store, DiscordWebhookClient discordWebhookClient)
+        {
 
-            NumericInput("Ratatouille (Pumpkin) (20,000g)", ref store.NRatatouille);
-            store.NRatatouille = Math.Max(store.NRatatouille, 0);
+            uint totalPrice = 0;
+            string[] orderItemDescriptions = [];
+            foreach (MenuItem menuItem in Enum.GetValues(typeof(MenuItem)))
+            {
+                var count = store.Counts[menuItem];
+                if (count > 0)
+                {
+                    var name = MenuItemNames[menuItem];
+                    var price = MenuItemPrices[menuItem];
+                    var subtotalPrice = (uint)(price * count);
+                    orderItemDescriptions = orderItemDescriptions.Append(count > 1
+                        ? $"{count} {name}s (* {price:n0}g = {subtotalPrice:n0}g)"
+                        : $"1 {name} ({price:n0}g)"
+                    ).ToArray();
+                    totalPrice += subtotalPrice;
+                }
+            }
+            var message = $"Name: @catharsis_\nWorld: Is His Oyster\nLocation: In High Places (Just Like His Friends)\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
 
-            NumericInput("Archon Burger (10,000g)", ref store.NArchonBurger);
-            store.NArchonBurger = Math.Max(store.NArchonBurger, 0);
+            Action onCheckout = async () =>
+            {
+                store.IsCheckoutProcessing = true;
+                await discordWebhookClient.SendMessageAsync(message);
+
+                store.IsCheckoutProcessing = false;
+            };
+
+            foreach (MenuItem menuItem in Enum.GetValues(typeof(MenuItem)))
+            {
+                var count = store.Counts[menuItem];
+                NumericInput($"{MenuItemNames[menuItem]} (${MenuItemPrices[menuItem]:n0}g)", ref count);
+                count = Math.Max(count, 0);
+                store.Counts[menuItem] = count;
+            }
 
             TextInput("Notes (optional)", ref store.Notes, 256);
 
@@ -44,12 +94,15 @@ namespace MoogleEats.Ui.MainWindow
 
         public sealed class OrderTabStore
         {
-            public int NPizzas = 0;
-            public int NGarlicBread = 0;
-            public int NBubbleTea = 0;
-            public int NKidsMeal = 0;
-            public int NRatatouille = 0;
-            public int NArchonBurger = 0;
+            public Dictionary<MenuItem, int> Counts = new()
+            {
+                { MenuItem.Pizza, 0 },
+                { MenuItem.GarlicBread, 0 },
+                { MenuItem.BubbleTea, 0 },
+                { MenuItem.KidsMeal, 0 },
+                { MenuItem.Ratatouille, 0 },
+                { MenuItem.ArchonBurger, 0 },
+            };
             public string Notes = "";
             public bool IsCheckoutProcessing = false;
         }

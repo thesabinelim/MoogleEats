@@ -4,22 +4,23 @@ using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using MoogleEats.Ui.MainWindow;
+using Discord.Webhook;
 
 namespace MoogleEats;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    public Settings Settings { get; init; }
-
-    public readonly WindowSystem WindowSystem = new("MoogleEats");
 
     private const string CommandName = "/moogleeats";
+    private const string DiscordWebhookUrl = "https://discord.com/api/webhooks/1201449051053367378/kBiuMzKDndSK1qij3LtnO3B3IewrsVv_3NqIcQctQo3fGMLumc2z20JvA7XCNRB7R5WY";
 
+    public Settings Settings { get; init; }
+    public readonly WindowSystem WindowSystem = new("MoogleEats");
     private MainWindow MainWindow { get; init; }
-
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
     [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
+    public DiscordWebhookClient DiscordWebhookClient = new DiscordWebhookClient(DiscordWebhookUrl);
 
     public Plugin()
     {

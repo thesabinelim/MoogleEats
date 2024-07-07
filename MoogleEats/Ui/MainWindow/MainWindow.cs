@@ -31,7 +31,7 @@ public sealed class MainWindow : Window, IDisposable
         Tabs("tabs", [
             new TabItem("Order", () => OrderTab(
                 store: store.OrderTabStore,
-                onCheckout: () => store.OrderTabStore.IsCheckoutProcessing = true
+                discordWebhookClient: plugin.DiscordWebhookClient
             )),
             new TabItem("Settings", () => SettingsTab(plugin.Settings))
         ]);
