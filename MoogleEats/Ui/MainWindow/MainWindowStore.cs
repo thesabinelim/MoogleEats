@@ -1,9 +1,8 @@
 using static MoogleEats.Ui.MainWindow.Tabs;
 
-namespace MoogleEats.Ui.MainWindow
+namespace MoogleEats.Ui.MainWindow;
+
+internal sealed class MainWindowStore
 {
-    public class MainWindowStore
-    {
-        public readonly OrderTabStore OrderTabStore = new();
-    }
+    internal readonly OrderTabStore OrderTabStore = new();
 }

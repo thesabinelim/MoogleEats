@@ -1,16 +1,15 @@
 using ImGuiNET;
 
-namespace MoogleEats.Ui
+namespace MoogleEats.Ui;
+
+internal sealed partial class Components
 {
-    public partial class Components
+    internal static void TextInput(
+        string label,
+        ref string value,
+        uint maxLength
+    )
     {
-        public static void TextInput(
-            string label,
-            ref string value,
-            uint maxLength
-        )
-        {
-            ImGui.InputText(label, ref value, maxLength);
-        }
+        ImGui.InputText(label, ref value, maxLength);
     }
 }

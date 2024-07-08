@@ -1,23 +1,25 @@
 using Dalamud.Interface.Components;
 using ImGuiNET;
+using MoogleEats.Services;
 
-namespace MoogleEats.Ui.MainWindow
+namespace MoogleEats.Ui.MainWindow;
+
+internal sealed partial class Tabs
 {
-    public partial class Tabs
+    internal static void SettingsTab(DalamudService dalamudService)
     {
-        public static void SettingsTab(Settings settings)
+        var settings = dalamudService.GetSettings();
+        var enableOrderStatusNotifications = settings.EnableOrderStatusNotifications;
+        if (ImGuiComponents.ToggleButton("enableOrderStatusNotifications", ref enableOrderStatusNotifications))
         {
-            var enableOrderStatusNotifications = settings.EnableOrderStatusNotifications;
-            if (ImGuiComponents.ToggleButton("enableOrderStatusNotifications", ref enableOrderStatusNotifications))
-            {
-                settings.EnableOrderStatusNotifications = enableOrderStatusNotifications;
-            }
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            }
-            ImGui.SameLine();
-            ImGui.Text("Enable order status notifications");
+            settings.EnableOrderStatusNotifications = enableOrderStatusNotifications;
+            dalamudService.SaveSettings(settings);
         }
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        }
+        ImGui.SameLine();
+        ImGui.Text("Enable order status notifications");
     }
 }

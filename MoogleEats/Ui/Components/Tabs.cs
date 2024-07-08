@@ -1,41 +1,41 @@
 using ImGuiNET;
 using System;
 
-namespace MoogleEats.Ui
+namespace MoogleEats.Ui;
+
+internal sealed partial class Components
 {
-    public partial class Components
+    internal static void Tabs(
+        string id,
+        TabItem[] items,
+        float rounding = 5f
+    )
     {
-        public static void Tabs(
-            string id,
-            TabItem[] items,
-            float rounding = 5f
-        )
+        if (ImGui.BeginTabBar(id))
         {
-            if (ImGui.BeginTabBar(id))
+            ImGui.PushStyleVar(ImGuiStyleVar.TabRounding, rounding);
+
+            foreach (var item in items)
             {
-                ImGui.PushStyleVar(ImGuiStyleVar.TabRounding, rounding);
+                var isSelected = ImGui.BeginTabItem(item.Label);
 
-                foreach (var item in items)
+                if (ImGui.IsItemHovered())
                 {
-                    var isSelected = ImGui.BeginTabItem(item.Label);
-
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                    }
-
-                    if (isSelected)
-                    {
-                        item.RenderContent();
-                        ImGui.EndTabItem();
-                    }
+                    ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                 }
 
-                ImGui.PopStyleVar();
-
-                ImGui.EndTabBar();
+                if (isSelected)
+                {
+                    item.RenderContent();
+                    ImGui.EndTabItem();
+                }
             }
+
+            ImGui.PopStyleVar();
+
+            ImGui.EndTabBar();
         }
-        public record TabItem(string Label, Action RenderContent);
     }
+
+    internal record TabItem(string Label, Action RenderContent);
 }

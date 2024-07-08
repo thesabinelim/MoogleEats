@@ -1,18 +1,19 @@
-using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
+using MoogleEats.Services;
 using static MoogleEats.Ui.Components;
 using static MoogleEats.Ui.MainWindow.Tabs;
 
 namespace MoogleEats.Ui.MainWindow;
 
-public sealed class MainWindow : Window, IDisposable
+internal sealed class MainWindow : Window
 {
-    private readonly Plugin plugin;
+    private readonly DalamudService dalamudService;
+    private readonly DiscordService discordService;
     private readonly MainWindowStore store = new();
 
-    public MainWindow(Plugin plugin)
+    internal MainWindow(DalamudService dalamudService, DiscordService discordService)
         : base("Moogle Eats", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
@@ -21,19 +22,21 @@ public sealed class MainWindow : Window, IDisposable
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
 
-        this.plugin = plugin;
+        this.dalamudService = dalamudService;
+        this.discordService = discordService;
     }
-
-    public void Dispose() { }
 
     public override void Draw()
     {
         Tabs("tabs", [
             new TabItem("Order", () => OrderTab(
                 store: store.OrderTabStore,
-                discordWebhookClient: plugin.DiscordWebhookClient
+                dalamudService: dalamudService,
+                discordService: discordService
             )),
-            new TabItem("Settings", () => SettingsTab(plugin.Settings))
+            new TabItem("Settings", () => SettingsTab(
+                dalamudService: dalamudService
+            ))
         ]);
     }
 }

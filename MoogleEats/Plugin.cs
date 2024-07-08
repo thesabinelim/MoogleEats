@@ -1,67 +1,65 @@
-using Dalamud.Game.Command;
-using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Services;
 using MoogleEats.Ui.MainWindow;
-using Discord.Webhook;
+using MoogleEats.Services;
+using Dalamud.Game.Command;
 
 namespace MoogleEats;
 
-public sealed class Plugin : IDalamudPlugin
+internal sealed class Plugin : IDalamudPlugin
 {
-
     private const string CommandName = "/moogleeats";
     private const string DiscordWebhookUrl = "https://discord.com/api/webhooks/1201449051053367378/kBiuMzKDndSK1qij3LtnO3B3IewrsVv_3NqIcQctQo3fGMLumc2z20JvA7XCNRB7R5WY";
 
-    public Settings Settings { get; init; }
-    public readonly WindowSystem WindowSystem = new("MoogleEats");
-    private MainWindow MainWindow { get; init; }
-    [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
-    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
-    public DiscordWebhookClient DiscordWebhookClient = new DiscordWebhookClient(DiscordWebhookUrl);
+    private readonly DalamudService dalamudService;
+    private readonly WindowSystem windowSystem = new("MoogleEats");
+    private readonly DiscordService discordService = new(DiscordWebhookUrl);
 
-    public Plugin()
+    private readonly MainWindow mainWindow;
+
+    public Plugin(IDalamudPluginInterface pluginInterface)
     {
-        Settings = PluginInterface.GetPluginConfig() as Settings ?? new Settings();
+        dalamudService = new(pluginInterface);
 
-        MainWindow = new MainWindow(this);
+        mainWindow = new(
+            dalamudService: dalamudService,
+            discordService: discordService
+        );
+        windowSystem.AddWindow(mainWindow);
 
-        WindowSystem.AddWindow(MainWindow);
-
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        dalamudService.OnOpenMainUi(openMainWindow);
+        dalamudService.OnOpenConfigUi(openSettingsWindow);
+        dalamudService.OnDraw(onDraw);
+        dalamudService.RegisterCommand(CommandName, new CommandInfo(onCommand)
         {
             HelpMessage = "Open the Moogle Eats menu and order some food!"
         });
-
-        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-
-        PluginInterface.UiBuilder.OpenMainUi += OpenMainWindow;
-        PluginInterface.UiBuilder.OpenConfigUi += OpenSettingsWindow;
-    }
-
-    public void OpenMainWindow()
-    {
-        MainWindow.IsOpen = true;
-    }
-
-    public void OpenSettingsWindow()
-    {
-        OpenMainWindow();
     }
 
     public void Dispose()
     {
-        WindowSystem.RemoveAllWindows();
+        windowSystem.RemoveAllWindows();
 
-        MainWindow.Dispose();
-
-        CommandManager.RemoveHandler(CommandName);
+        dalamudService.RemoveCommand(CommandName);
     }
 
-    private void OnCommand(string command, string args)
+    private void openMainWindow()
     {
-        MainWindow.Toggle();
+        mainWindow.IsOpen = true;
+    }
+
+    private void openSettingsWindow()
+    {
+        openMainWindow();
+    }
+
+    private void onCommand(string command, string args)
+    {
+        mainWindow.Toggle();
+    }
+
+    private void onDraw()
+    {
+        windowSystem.Draw();
     }
 }

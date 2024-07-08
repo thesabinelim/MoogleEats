@@ -4,14 +4,9 @@ using System;
 namespace MoogleEats;
 
 [Serializable]
-public sealed class Settings : IPluginConfiguration
+internal sealed class Settings : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
-    public bool EnableOrderStatusNotifications { get; set; } = true;
-
-    public void Save()
-    {
-        Plugin.PluginInterface.SavePluginConfig(this);
-    }
+    internal bool EnableOrderStatusNotifications { get; set; } = true;
 }
