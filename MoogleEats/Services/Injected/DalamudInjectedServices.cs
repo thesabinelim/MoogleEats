@@ -1,6 +1,5 @@
 using Dalamud.IoC;
 using Dalamud.Plugin.Services;
-using Dalamud.Plugin;
 
 namespace MoogleEats.Services.Injected;
 

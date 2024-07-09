@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MoogleEats.Services;
+using ImGuiNET;
+using MoogleEats.Shared;
+using System.Numerics;
 
 namespace MoogleEats.Ui.MainWindow;
 
@@ -44,6 +47,61 @@ internal sealed partial class Tabs
         DiscordService discordService
     )
     {
+        string formatCoordinates(Vector2 coordinates)
+        {
+            return $"( {coordinates.X:0.0} , {coordinates.Y:0.0} )";
+        }
+        string formatArea(AreaInfo? area)
+        {
+            return area.HasValue ? $", {area.Value.Name}{(area.Value.SubArea != null ? $", {area.Value.SubArea}" : "")}" : "";
+        }
+        string formatHousingWard(HousingInfo housing)
+        {
+            return $"Ward {housing.Ward}{(housing.IsWardSubdivision ? " Subdivision" : "")}";
+        }
+        string formatBuilding(BuildingInfo? building)
+        {
+            if (building == null)
+            {
+                return "";
+            }
+            switch (building)
+            {
+                case PlotInfo plot:
+                    return $", Plot {plot.Number}{(plot.Room.HasValue ? $", Room {plot.Room.Value}" : "")}";
+                case ApartmentLobbyInfo:
+                    return $", Apartment Lobby";
+                case ApartmentRoomInfo room:
+                    return $", Apartment Room #{room.Number}";
+                default:
+                    throw new ArgumentNullException(nameof(building));
+            }
+        }
+        string formatHousing(HousingInfo? housing)
+        {
+            return housing.HasValue ? $", {formatHousingWard(housing.Value)}{formatBuilding(housing.Value.Building)}" : "";
+        }
+        string formatLocation(LocationInfo location)
+        {
+            return $"{location.Region}, {location.Zone}{formatArea(location.Area)}{formatHousing(location.Housing)} {formatCoordinates(location.Coordinates)}";
+        }
+
+        string formatWorld(LocationInfo location)
+        {
+            return $"{location.World}, {location.DataCenter}, {location.DataCenterRegion}";
+        }
+
+        string? constructMessage(string[] orderItemDescriptions, uint totalPrice)
+        {
+            var name = dalamudService.GetQualifiedPlayerName();
+            var location = dalamudService.GetPlayerLocation();
+            if (name == null || !location.HasValue)
+            {
+                return null;
+            }
+            return $"Name: {name}\nLocation: {formatLocation(location.Value)}\nWorld: {formatWorld(location.Value)}\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
+        }
+
         uint totalPrice = 0;
         string[] orderItemDescriptions = [];
         foreach (MenuItem menuItem in Enum.GetValues(typeof(MenuItem)))
@@ -61,15 +119,21 @@ internal sealed partial class Tabs
                 totalPrice += subtotalPrice;
             }
         }
-        var message = $"Name: TODO\nLocation: TODO\nWorld: TODO\nData Center: TODO\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
 
-        Action onCheckout = async () =>
+        ImGui.TextUnformatted(constructMessage(orderItemDescriptions, totalPrice));
+
+        async void onCheckout()
         {
+            var message = constructMessage(orderItemDescriptions, totalPrice);
+            if (message == null)
+            {
+                throw new Exception("TODO: handle this");
+            }
+
             store.IsCheckoutProcessing = true;
             await discordService.SendWebhookMessage(message);
-
             store.IsCheckoutProcessing = false;
-        };
+        }
 
         foreach (MenuItem menuItem in Enum.GetValues(typeof(MenuItem)))
         {
