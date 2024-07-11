@@ -5,7 +5,9 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using PlaceName = Lumina.Excel.GeneratedSheets.PlaceName;
+using Map = Lumina.Excel.GeneratedSheets.Map;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
+using TerritoryTypeTransient = Lumina.Excel.GeneratedSheets.TerritoryTypeTransient;
 using World = Lumina.Excel.GeneratedSheets.World;
 using MoogleEats.Services.Injected;
 using System;
@@ -21,8 +23,6 @@ internal sealed class DalamudService
     private readonly ICommandManager commandManager;
     private readonly IDataManager dataManager;
     private readonly IDalamudPluginInterface pluginInterface;
-
-    private readonly ClientStructServices clientStructServices = new();
 
     public DalamudService(IDalamudPluginInterface pluginInterface)
     {
@@ -105,7 +105,7 @@ internal sealed class DalamudService
 
     internal LocationInfo? GetPlayerLocation(ClientLanguage language)
     {
-        var coords = getPlayerCoordinates();
+        var coords = getPlayerMapCoordinates();
         var zone = getZoneName(language);
         var region = getRegionName(language);
         var world = getWorldName(language);
@@ -124,7 +124,7 @@ internal sealed class DalamudService
         return new LocationInfo() {
             Coordinates = coords.Value,
             Area = getPlayerAreaInfo(language),
-            Housing = getPlayerHousingInfo(language),
+            Housing = getPlayerHousingInfo(),
             Zone = zone,
             Region = region,
             World = world,
@@ -137,14 +137,14 @@ internal sealed class DalamudService
     {
         var area = getAreaName(language);
         var subArea = getSubAreaName(language);
-        return area != null ? new AreaInfo()
+        return area?.Length > 0 ? new AreaInfo()
         {
             Name = area,
             SubArea = subArea?.Length > 0 ? subArea : null,
         } : null;
     }
 
-    private HousingInfo? getPlayerHousingInfo(ClientLanguage language)
+    private static HousingInfo? getPlayerHousingInfo()
     {
         var ward = getHousingWard();
         if (!ward.HasValue)
@@ -154,16 +154,16 @@ internal sealed class DalamudService
 
         return new HousingInfo()
         {
-            Building = getPlayerBuildingInfo(language),
+            Building = getPlayerBuildingInfo(),
             Ward = ward.Value,
             IsWardSubdivision = isHousingWardSubdivision(),
         };
     }
 
-    private BuildingInfo? getPlayerBuildingInfo(ClientLanguage language)
+    private static BuildingInfo? getPlayerBuildingInfo()
     {
         var room = getHousingRoom();
-        if (isHousingApartment())
+        if (isHousingApartment() == true)
         {
             return room.HasValue
                 ? new ApartmentRoomInfo()
@@ -183,10 +183,20 @@ internal sealed class DalamudService
             : null;
     }
 
-    private Vector2? getPlayerCoordinates()
+    /**
+     * https://github.com/goatcorp/Dalamud/issues/1916
+     * Can't use MapUtil.GetMapCoordinates() until this is fixed
+     */
+    private Vector3? getPlayerMapCoordinates()
     {
-        var mapLink = getPlayerMapLink();
-        return mapLink != null ? new Vector2(mapLink.XCoord, mapLink.YCoord) : null;
+        var player = getPlayer();
+        var map = getMap();
+        var territoryTransient = getTerritoryTransient();
+        if (player == null || map == null || territoryTransient == null)
+        {
+            return null;
+        }
+        return MapUtil.WorldToMap(player.Position, map, territoryTransient, true);
     }
 
     private string? getPlayerHomeWorldName(ClientLanguage language)
@@ -206,12 +216,18 @@ internal sealed class DalamudService
 
     private string? getAreaName(ClientLanguage language)
     {
-        return dataManager.GetExcelSheet<PlaceName>(language)?.GetRow(clientStructServices.TerritoryInfo.AreaPlaceNameId)?.Name.RawString;
+        var areaPlaceNameId = ClientStructServices.TerritoryInfo?.AreaPlaceNameId;
+        return areaPlaceNameId.HasValue
+            ? dataManager.GetExcelSheet<PlaceName>(language)?.GetRow(areaPlaceNameId.Value)?.Name.RawString
+            : null;
     }
 
     private string? getSubAreaName(ClientLanguage language)
     {
-        return dataManager.GetExcelSheet<PlaceName>(language)?.GetRow(clientStructServices.TerritoryInfo.SubAreaPlaceNameId)?.Name.RawString;
+        var subAreaPlaceNameId = ClientStructServices.TerritoryInfo?.SubAreaPlaceNameId;
+        return subAreaPlaceNameId.HasValue
+            ? dataManager.GetExcelSheet<PlaceName>(language)?.GetRow(subAreaPlaceNameId.Value)?.Name.RawString
+            : null;
     }
 
     private string? getWorldName(ClientLanguage language)
@@ -237,33 +253,33 @@ internal sealed class DalamudService
         };
     }
 
-    private uint? getHousingRoom()
+    private static uint? getHousingRoom()
     {
-        var room = clientStructServices.HousingManager.GetCurrentRoom();
+        var room = ClientStructServices.HousingManager?.GetCurrentRoom();
         return room > 0 ? (uint)room : null;
     }
 
-    private uint? getHousingPlot()
+    private static uint? getHousingPlot()
     {
-        var plot = clientStructServices.HousingManager.GetCurrentPlot() + 1;
+        var plot = ClientStructServices.HousingManager?.GetCurrentPlot() + 1;
         return plot > 0 ? (uint)plot : null;
     }
 
-    private bool isHousingApartment()
+    private static bool? isHousingApartment()
     {
-        return clientStructServices.HousingManager.GetCurrentPlot() < -1;
+        return ClientStructServices.HousingManager?.GetCurrentPlot() < -1;
     }
 
-    private uint? getHousingWard()
+    private static uint? getHousingWard()
     {
-        var ward = clientStructServices.HousingManager.GetCurrentWard() + 1;
+        var ward = ClientStructServices.HousingManager?.GetCurrentWard() + 1;
         return ward > 0 ? (uint)ward : null;
     }
 
-    private bool isHousingWardSubdivision()
+    private static bool isHousingWardSubdivision()
     {
-        return clientStructServices.HousingManager.GetCurrentDivision() == 2
-            || clientStructServices.HousingManager.GetCurrentPlot() is >= 30 or -127;
+        return ClientStructServices.HousingManager?.GetCurrentDivision() == 2
+            || ClientStructServices.HousingManager?.GetCurrentPlot() is >= 30 or -127;
     }
 
     private IPlayerCharacter? getPlayer()
@@ -279,17 +295,6 @@ internal sealed class DalamudService
     private World? getPlayerHomeWorld(ClientLanguage language)
     {
         return getPlayer()?.HomeWorld.GetWithLanguage(language);
-    }
-
-    private MapLinkPayload? getPlayerMapLink()
-    {
-        var player = getPlayer();
-        if (player == null)
-        {
-            return null;
-        }
-        var coords = player.GetMapCoordinates();
-        return new MapLinkPayload(clientState.TerritoryType, clientState.MapId, coords.X, coords.Y);
     }
 
     private World? getWorld()
@@ -310,5 +315,25 @@ internal sealed class DalamudService
     private TerritoryType? getTerritory(ClientLanguage language)
     {
         return dataManager.GetExcelSheet<TerritoryType>(language)?.GetRow(clientState.TerritoryType);
+    }
+
+    private TerritoryTypeTransient? getTerritoryTransient()
+    {
+        return getTerritoryTransient(GetLanguage());
+    }
+
+    private TerritoryTypeTransient? getTerritoryTransient(ClientLanguage language)
+    {
+        return dataManager.GetExcelSheet<TerritoryTypeTransient>(language)?.GetRow(clientState.TerritoryType);
+    }
+
+    private Map? getMap()
+    {
+        return getMap(GetLanguage());
+    }
+
+    private Map? getMap(ClientLanguage language)
+    {
+        return dataManager.GetExcelSheet<Map>(language)?.GetRow(clientState.MapId);
     }
 }

@@ -1,22 +1,32 @@
-using System;
-using Game = FFXIVClientStructs.FFXIV.Client.Game;
+using Client = FFXIVClientStructs.FFXIV.Client;
 
 namespace MoogleEats.Services.Injected;
 
 internal sealed unsafe class ClientStructServices
 {
-    internal readonly Game.HousingManager HousingManager;
-    internal readonly Game.UI.TerritoryInfo TerritoryInfo;
-
-    internal ClientStructServices()
-    {
-        var housingManagerPtr = Game.HousingManager.Instance();
-        var territoryInfoPtr = Game.UI.TerritoryInfo.Instance();
-        if (housingManagerPtr == null || territoryInfoPtr == null)
+    internal static Client.UI.Agent.AgentMap? AgentMap {
+        get
         {
-            throw new Exception("Failed to initialise ClientStruct services");
+            var agentMap = Client.UI.Agent.AgentMap.Instance();
+            return agentMap != null ? *agentMap : null;
         }
-        HousingManager = *housingManagerPtr;
-        TerritoryInfo = *territoryInfoPtr;
+    }
+
+    internal static Client.Game.HousingManager? HousingManager
+    {
+        get
+        {
+            var housingManager = Client.Game.HousingManager.Instance();
+            return housingManager != null ? *housingManager : null;
+        }
+    }
+
+    internal static Client.Game.UI.TerritoryInfo? TerritoryInfo
+    {
+        get
+        {
+            var territoryInfo = Client.Game.UI.TerritoryInfo.Instance();
+            return territoryInfo != null ? *territoryInfo : null;
+        }
     }
 }

@@ -47,50 +47,6 @@ internal sealed partial class Tabs
         DiscordService discordService
     )
     {
-        string formatCoordinates(Vector2 coordinates)
-        {
-            return $"( {coordinates.X:0.0} , {coordinates.Y:0.0} )";
-        }
-        string formatArea(AreaInfo? area)
-        {
-            return area.HasValue ? $", {area.Value.Name}{(area.Value.SubArea != null ? $", {area.Value.SubArea}" : "")}" : "";
-        }
-        string formatHousingWard(HousingInfo housing)
-        {
-            return $"Ward {housing.Ward}{(housing.IsWardSubdivision ? " Subdivision" : "")}";
-        }
-        string formatBuilding(BuildingInfo? building)
-        {
-            if (building == null)
-            {
-                return "";
-            }
-            switch (building)
-            {
-                case PlotInfo plot:
-                    return $", Plot {plot.Number}{(plot.Room.HasValue ? $", Room {plot.Room.Value}" : "")}";
-                case ApartmentLobbyInfo:
-                    return $", Apartment Lobby";
-                case ApartmentRoomInfo room:
-                    return $", Apartment Room #{room.Number}";
-                default:
-                    throw new ArgumentNullException(nameof(building));
-            }
-        }
-        string formatHousing(HousingInfo? housing)
-        {
-            return housing.HasValue ? $", {formatHousingWard(housing.Value)}{formatBuilding(housing.Value.Building)}" : "";
-        }
-        string formatLocation(LocationInfo location)
-        {
-            return $"{location.Region}, {location.Zone}{formatArea(location.Area)}{formatHousing(location.Housing)} {formatCoordinates(location.Coordinates)}";
-        }
-
-        string formatWorld(LocationInfo location)
-        {
-            return $"{location.World}, {location.DataCenter}, {location.DataCenterRegion}";
-        }
-
         string? constructMessage(string[] orderItemDescriptions, uint totalPrice)
         {
             var name = dalamudService.GetQualifiedPlayerName();
@@ -99,7 +55,7 @@ internal sealed partial class Tabs
             {
                 return null;
             }
-            return $"Name: {name}\nLocation: {formatLocation(location.Value)}\nWorld: {formatWorld(location.Value)}\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
+            return $"Name: {name}\nLocation: {location}\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
         }
 
         uint totalPrice = 0;
