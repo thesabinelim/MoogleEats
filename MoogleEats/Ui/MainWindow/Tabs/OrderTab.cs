@@ -8,6 +8,7 @@ using MoogleEats.Services;
 using ImGuiNET;
 using MoogleEats.Shared;
 using System.Numerics;
+using Dalamud.Game;
 
 namespace MoogleEats.Ui.MainWindow;
 
@@ -49,13 +50,27 @@ internal sealed partial class Tabs
     {
         string? constructMessage(string[] orderItemDescriptions, uint totalPrice)
         {
-            var name = dalamudService.GetQualifiedPlayerName();
-            var location = dalamudService.GetPlayerLocation();
-            if (name == null || !location.HasValue)
+            var name = dalamudService.GetQualifiedPlayerName(ClientLanguage.English);
+            var location = dalamudService.GetPlayerLocation(ClientLanguage.English);
+            var world = dalamudService.GetPlayerWorldName(ClientLanguage.English);
+            var dataCenter = dalamudService.GetPlayerDataCenterName(ClientLanguage.English);
+            if (name == null
+                || !location.HasValue
+                || world == null
+                || dataCenter == null)
             {
                 return null;
             }
-            return $"Name: {name}\nLocation: {location.Value.AddressString} {location.Value.CoordinateString}\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
+            var parts = new List<string> {
+                $"Name: {name}",
+                $"Location: {location.Value.AddressString} {location.Value.CoordinateString}",
+                $"World: {world}, {dataCenter}",
+                $"Notes: {store.Notes}",
+                "",
+                string.Join('\n', orderItemDescriptions),
+                $"Total: {totalPrice:n0}g",
+            };
+            return string.Join('\n', parts);
         }
 
         uint totalPrice = 0;

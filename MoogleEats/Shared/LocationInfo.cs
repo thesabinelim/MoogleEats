@@ -47,24 +47,38 @@ internal readonly record struct LocationInfo
                     parts.Add(formatWard(Housing.Value.Ward));
                     break;
                 default:
-                    if (Area.HasValue)
+                    if (Housing.HasValue && Map != null)
                     {
-                        if (Area.Value.SubArea != null)
+                        if (Area.HasValue)
                         {
-                            parts.Add(Area.Value.SubArea);
+                            parts.AddRange(formatArea(Area.Value));
                         }
-                        parts.Add(Area.Value.Name);
-                    } else if (Map != null)
-                    {
                         parts.Add(Map);
-                    }
-                    if (!Housing.HasValue)
+                    } else
                     {
+                        if (Area.HasValue)
+                        {
+                            parts.AddRange(formatArea(Area.Value));
+                        } else if (Map != null)
+                        {
+                            parts.Add(Map);
+                        }
                         parts.Add(Zone);
                     }
                     break;
             }
             return string.Join(", ", parts);
+
+            static List<string> formatArea(AreaInfo area)
+            {
+                var parts = new List<string>();
+                if (area.SubArea != null)
+                {
+                    parts.Add(area.SubArea);
+                }
+                parts.Add(area.Name);
+                return parts;
+            }
 
             static string formatWard(uint ward)
             {

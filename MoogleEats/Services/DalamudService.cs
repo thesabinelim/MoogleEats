@@ -125,6 +125,16 @@ internal sealed class DalamudService
         };
     }
 
+    internal string? GetPlayerWorldName(ClientLanguage language)
+    {
+        return getWorld(language)?.Name.RawString;
+    }
+
+    internal string? GetPlayerDataCenterName(ClientLanguage language)
+    {
+        return getWorld(language)?.DataCenter.Value?.Name.RawString;
+    }
+
     private AreaInfo? getPlayerAreaInfo(ClientLanguage language)
     {
         var area = getAreaName(language);
@@ -226,16 +236,6 @@ internal sealed class DalamudService
         return subAreaPlaceNameId.HasValue
             ? dataManager.GetExcelSheet<PlaceName>(language)?.GetRow(subAreaPlaceNameId.Value)?.Name.RawString
             : null;
-    }
-
-    private string? getWorldName(ClientLanguage language)
-    {
-        return getWorld(language)?.Name.RawString;
-    }
-
-    private string? getDataCenterName(ClientLanguage language)
-    {
-        return getWorld(language)?.DataCenter.Value?.Name.RawString;
     }
 
     private string? getDataCenterRegionName()
