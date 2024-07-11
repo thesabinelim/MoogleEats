@@ -1,6 +1,5 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Command;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -106,17 +105,12 @@ internal sealed class DalamudService
     internal LocationInfo? GetPlayerLocation(ClientLanguage language)
     {
         var coords = getPlayerMapCoordinates();
+        var map = getMapName(language);
         var zone = getZoneName(language);
         var region = getRegionName(language);
-        var world = getWorldName(language);
-        var dataCenter = getDataCenterName(language);
-        var dataCenterRegion = getDataCenterRegionName();
         if (!coords.HasValue
             || zone == null
-            || region == null
-            || world == null
-            || dataCenter == null
-            || dataCenterRegion == null)
+            || region == null)
         {
             return null;
         }
@@ -125,11 +119,9 @@ internal sealed class DalamudService
             Coordinates = coords.Value,
             Area = getPlayerAreaInfo(language),
             Housing = getPlayerHousingInfo(),
+            Map = map,
             Zone = zone,
             Region = region,
-            World = world,
-            DataCenter = dataCenter,
-            DataCenterRegion = dataCenterRegion,
         };
     }
 
@@ -212,6 +204,12 @@ internal sealed class DalamudService
     private string? getZoneName(ClientLanguage language)
     {
         return getTerritory(language)?.PlaceName.Value?.Name.RawString;
+    }
+
+    private string? getMapName(ClientLanguage language)
+    {
+        var map = getMap(language)?.PlaceNameSub.Value?.Name.RawString;
+        return map?.Length > 0 ? map : null;
     }
 
     private string? getAreaName(ClientLanguage language)

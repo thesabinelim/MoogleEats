@@ -1,5 +1,6 @@
+using System;
+using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 
 namespace MoogleEats.Shared;
 
@@ -8,33 +9,78 @@ internal readonly record struct LocationInfo
     internal readonly Vector3 Coordinates { get; init; }
     internal readonly AreaInfo? Area { get; init; }
     internal readonly HousingInfo? Housing { get; init; }
+    internal readonly string? Map { get; init; }
     internal readonly string Zone { get; init; }
     internal readonly string Region { get; init; }
-    internal readonly string World { get; init; }
-    internal readonly string DataCenter { get; init; }
-    internal readonly string DataCenterRegion { get; init; }
 
-    public override string ToString()
+    internal readonly string CoordinateString
     {
-        var sb = new StringBuilder();
-        sb.Append(Region);
-        sb.Append($", {Zone}");
-        if (Area.HasValue)
+        get
         {
-            sb.Append($", {Area.Value}");
-        } else if (Housing?.IsWardSubdivision == true)
-        {
-            sb.Append(" Subdivision");
+            return $"(X: {formatCoordinate(Coordinates.X)}, Y: {formatCoordinate(Coordinates.Y)}, Z: {formatCoordinate(Coordinates.Z)})";
+
+            static string formatCoordinate(float coord)
+            {
+                return $"{Math.Floor(coord * 10) / 10:0.0}";
+            }
         }
-        if (Housing.HasValue)
+    }
+
+    internal readonly string AddressString
+    {
+        get
         {
-            sb.Append($", {Housing.Value}");
+            var parts = new List<string>();
+            switch (Housing?.Building)
+            {
+                case PlotInfo plot:
+                    parts.Add($"Plot {plot.Number}{(plot.Room.HasValue ? $" {formatRoom(plot.Room.Value)}" : "")}");
+                    parts.Add(formatWard(Housing.Value.Ward));
+                    parts.Add(Map ?? Zone);
+                    break;
+                case ApartmentLobbyInfo:
+                    parts.Add($"{Map ?? Zone} {formatWing(Housing.Value.IsWardSubdivision)}");
+                    parts.Add(formatWard(Housing.Value.Ward));
+                    break;
+                case ApartmentRoomInfo room:
+                    parts.Add($"{Map ?? Zone} {formatWing(Housing.Value.IsWardSubdivision)} {formatRoom(room.Number)}");
+                    parts.Add(formatWard(Housing.Value.Ward));
+                    break;
+                default:
+                    if (Area.HasValue)
+                    {
+                        if (Area.Value.SubArea != null)
+                        {
+                            parts.Add(Area.Value.SubArea);
+                        }
+                        parts.Add(Area.Value.Name);
+                    } else if (Map != null)
+                    {
+                        parts.Add(Map);
+                    }
+                    if (!Housing.HasValue)
+                    {
+                        parts.Add(Zone);
+                    }
+                    break;
+            }
+            return string.Join(", ", parts);
+
+            static string formatWard(uint ward)
+            {
+                return $"{StringUtils.ToOrdinalString((int)ward)} Ward";
+            }
+
+            static string formatWing(bool? isSubdivision)
+            {
+                return $"Wing {(isSubdivision == true ? 2 : 1)}";
+            }
+
+            static string formatRoom(uint room)
+            {
+                return $"Room #{room}";
+            }
         }
-        sb.Append($", ( X: {Coordinates.X} Y: {Coordinates.Y} Z: {Coordinates.Z} )");
-        sb.Append($", {World}");
-        sb.Append($", {DataCenter}");
-        sb.Append($", {DataCenterRegion}");
-        return sb.ToString();
     }
 }
 
@@ -42,17 +88,6 @@ internal readonly record struct AreaInfo
 {
     internal readonly string Name { get; init; }
     internal readonly string? SubArea { get; init; }
-
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-        sb.Append(Name);
-        if (SubArea != null)
-        {
-            sb.Append($", {SubArea}");
-        }
-        return sb.ToString();
-    }
 }
 
 internal readonly record struct HousingInfo
@@ -60,17 +95,6 @@ internal readonly record struct HousingInfo
     internal readonly BuildingInfo? Building { get; init; }
     internal readonly uint Ward { get; init; }
     internal readonly bool IsWardSubdivision { get; init; }
-
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-        if (Building != null)
-        {
-            sb.Append($"{Building}, ");
-        }
-        sb.Append($"{StringUtils.ToOrdinalString((int)Ward)} Ward");
-        return sb.ToString();
-    }
 }
 
 internal interface BuildingInfo;
@@ -79,33 +103,11 @@ internal readonly record struct PlotInfo : BuildingInfo
 {
     internal readonly uint Number { get; init; }
     internal readonly uint? Room { get; init; }
-
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-        sb.Append($"Plot {Number}");
-        if (Room.HasValue)
-        {
-            sb.Append($" Room #{Room.Value}");
-        }
-        return sb.ToString();
-    }
 }
 
-internal readonly record struct ApartmentLobbyInfo : BuildingInfo
-{
-    public override string ToString()
-    {
-        return "Lobby";
-    }
-}
+internal readonly record struct ApartmentLobbyInfo : BuildingInfo;
 
 internal readonly record struct ApartmentRoomInfo : BuildingInfo
 {
     internal readonly uint Number { get; init; }
-
-    public override string ToString()
-    {
-        return $"Room #{Number}";
-    }
 }

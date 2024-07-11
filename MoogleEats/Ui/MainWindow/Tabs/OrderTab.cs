@@ -55,7 +55,7 @@ internal sealed partial class Tabs
             {
                 return null;
             }
-            return $"Name: {name}\nLocation: {location}\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
+            return $"Name: {name}\nLocation: {location.Value.AddressString} {location.Value.CoordinateString}\nNotes: {store.Notes}\n\n{string.Join('\n', orderItemDescriptions)}\nTotal: {totalPrice:n0}g";
         }
 
         uint totalPrice = 0;
