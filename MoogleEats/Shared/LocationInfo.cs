@@ -54,16 +54,25 @@ internal readonly record struct LocationInfo
                             parts.AddRange(formatArea(Area.Value));
                         }
                         parts.Add(Map);
-                    } else
+                        parts.Add(Region);
+                    }
+                    else
                     {
                         if (Area.HasValue)
                         {
                             parts.AddRange(formatArea(Area.Value));
-                        } else if (Map != null)
+                            parts.Add(Zone);
+                        }
+                        else if (Map != null)
                         {
                             parts.Add(Map);
+                            parts.Add(Zone);
                         }
-                        parts.Add(Zone);
+                        else
+                        {
+                            parts.Add(Zone);
+                            parts.Add(Region);
+                        }
                     }
                     break;
             }

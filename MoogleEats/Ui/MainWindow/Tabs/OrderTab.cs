@@ -50,21 +50,23 @@ internal sealed partial class Tabs
     {
         string? constructMessage(string[] orderItemDescriptions, uint totalPrice)
         {
-            var name = dalamudService.GetQualifiedPlayerName(ClientLanguage.English);
+            var name = dalamudService.GetQualifiedPlayerName();
             var location = dalamudService.GetPlayerLocation(ClientLanguage.English);
             var world = dalamudService.GetPlayerWorldName(ClientLanguage.English);
             var dataCenter = dalamudService.GetPlayerDataCenterName(ClientLanguage.English);
+            var dataCenterRegionShort = dalamudService.GetDataCenterRegionShortName();
             if (name == null
                 || !location.HasValue
                 || world == null
-                || dataCenter == null)
+                || dataCenter == null
+                || dataCenterRegionShort == null)
             {
                 return null;
             }
             var parts = new List<string> {
                 $"Name: {name}",
                 $"Location: {location.Value.AddressString} {location.Value.CoordinateString}",
-                $"World: {world}, {dataCenter}",
+                $"World: {world}, {dataCenter} {dataCenterRegionShort}",
                 $"Notes: {store.Notes}",
                 "",
                 string.Join('\n', orderItemDescriptions),

@@ -87,13 +87,8 @@ internal sealed class DalamudService
 
     internal string? GetQualifiedPlayerName()
     {
-        return GetQualifiedPlayerName(GetLanguage());
-    }
-
-    internal string? GetQualifiedPlayerName(ClientLanguage language)
-    {
         var name = GetPlayerName();
-        var homeWorld = getPlayerHomeWorldName(language);
+        var homeWorld = getPlayerHomeWorldName();
         return name != null && homeWorld != null ? $"{name}@{homeWorld}" : null;
     }
 
@@ -115,7 +110,8 @@ internal sealed class DalamudService
             return null;
         }
 
-        return new LocationInfo() {
+        return new LocationInfo()
+        {
             Coordinates = coords.Value,
             Area = getPlayerAreaInfo(language),
             Housing = getPlayerHousingInfo(),
@@ -133,6 +129,32 @@ internal sealed class DalamudService
     internal string? GetPlayerDataCenterName(ClientLanguage language)
     {
         return getWorld(language)?.DataCenter.Value?.Name.RawString;
+    }
+
+    internal string? GetDataCenterRegionName()
+    {
+        return getWorld()?.DataCenter.Value?.Region switch
+        {
+            1 => "Japan",
+            2 => "North America",
+            3 => "Europe",
+            4 => "Oceania",
+            null => null,
+            _ => "Unknown",
+        };
+    }
+
+    internal string? GetDataCenterRegionShortName()
+    {
+        return getWorld()?.DataCenter.Value?.Region switch
+        {
+            1 => "JP",
+            2 => "NA",
+            3 => "EU",
+            4 => "OCE",
+            null => null,
+            _ => "???",
+        };
     }
 
     private AreaInfo? getPlayerAreaInfo(ClientLanguage language)
@@ -169,9 +191,9 @@ internal sealed class DalamudService
         {
             return room.HasValue
                 ? new ApartmentRoomInfo()
-                    {
-                        Number = room.Value,
-                    }
+                {
+                    Number = room.Value,
+                }
                 : new ApartmentLobbyInfo();
         }
 
@@ -185,25 +207,14 @@ internal sealed class DalamudService
             : null;
     }
 
-    /**
-     * https://github.com/goatcorp/Dalamud/issues/1916
-     * Can't use MapUtil.GetMapCoordinates() until this is fixed
-     */
     private Vector3? getPlayerMapCoordinates()
     {
-        var player = getPlayer();
-        var map = getMap();
-        var territoryTransient = getTerritoryTransient();
-        if (player == null || map == null || territoryTransient == null)
-        {
-            return null;
-        }
-        return MapUtil.WorldToMap(player.Position, map, territoryTransient, true);
+        return getPlayer()?.GetMapCoordinates(true);
     }
 
-    private string? getPlayerHomeWorldName(ClientLanguage language)
+    private string? getPlayerHomeWorldName()
     {
-        return getPlayerHomeWorld(language)?.Name.RawString;
+        return getPlayerHomeWorld()?.Name.RawString;
     }
 
     private string? getRegionName(ClientLanguage language)
@@ -236,19 +247,6 @@ internal sealed class DalamudService
         return subAreaPlaceNameId.HasValue
             ? dataManager.GetExcelSheet<PlaceName>(language)?.GetRow(subAreaPlaceNameId.Value)?.Name.RawString
             : null;
-    }
-
-    private string? getDataCenterRegionName()
-    {
-        return getWorld()?.DataCenter.Value?.Region switch
-        {
-            1 => "Japan",
-            2 => "North America",
-            3 => "Europe",
-            4 => "Australia",
-            null => null,
-            _ => "Unknown",
-        };
     }
 
     private static uint? getHousingRoom()
