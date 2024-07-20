@@ -1,7 +1,7 @@
 using Dalamud.Configuration;
 using System;
 
-namespace MoogleEats;
+namespace PizzaTime;
 
 [Serializable]
 internal sealed class Settings : IPluginConfiguration

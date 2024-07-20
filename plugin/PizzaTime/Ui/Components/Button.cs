@@ -5,7 +5,7 @@ using ImGuiNET;
 using System;
 using System.Numerics;
 
-namespace MoogleEats.Ui;
+namespace PizzaTime.Ui;
 
 internal sealed partial class Components
 {

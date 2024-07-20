@@ -1,7 +1,7 @@
 using Dalamud.IoC;
 using Dalamud.Plugin.Services;
 
-namespace MoogleEats.Services.Injected;
+namespace PizzaTime.Services.Injected;
 
 internal sealed class DalamudInjectedServices
 {

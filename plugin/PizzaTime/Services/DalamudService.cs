@@ -8,13 +8,13 @@ using Map = Lumina.Excel.GeneratedSheets.Map;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 using TerritoryTypeTransient = Lumina.Excel.GeneratedSheets.TerritoryTypeTransient;
 using World = Lumina.Excel.GeneratedSheets.World;
-using MoogleEats.Services.Injected;
+using PizzaTime.Services.Injected;
 using System;
 using Dalamud.Game;
 using System.Numerics;
-using MoogleEats.Shared;
+using PizzaTime.Shared;
 
-namespace MoogleEats.Services;
+namespace PizzaTime.Services;
 
 internal sealed class DalamudService
 {

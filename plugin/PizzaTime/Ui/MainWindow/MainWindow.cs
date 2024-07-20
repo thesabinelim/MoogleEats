@@ -1,11 +1,11 @@
 using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using MoogleEats.Services;
-using static MoogleEats.Ui.Components;
-using static MoogleEats.Ui.MainWindow.Tabs;
+using PizzaTime.Services;
+using static PizzaTime.Ui.Components;
+using static PizzaTime.Ui.MainWindow.Tabs;
 
-namespace MoogleEats.Ui.MainWindow;
+namespace PizzaTime.Ui.MainWindow;
 
 internal sealed class MainWindow : Window
 {
@@ -14,7 +14,7 @@ internal sealed class MainWindow : Window
     private readonly MainWindowStore store = new();
 
     internal MainWindow(DalamudService dalamudService, DiscordService discordService)
-        : base("Moogle Eats", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        : base("Pizza Time", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         SizeConstraints = new WindowSizeConstraints
         {

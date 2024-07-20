@@ -1,16 +1,16 @@
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
-using static MoogleEats.Ui.Components;
+using static PizzaTime.Ui.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MoogleEats.Services;
+using PizzaTime.Services;
 using ImGuiNET;
-using MoogleEats.Shared;
+using PizzaTime.Shared;
 using System.Numerics;
 using Dalamud.Game;
 
-namespace MoogleEats.Ui.MainWindow;
+namespace PizzaTime.Ui.MainWindow;
 
 internal sealed partial class Tabs
 {

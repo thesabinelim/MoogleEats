@@ -1,10 +1,11 @@
 using Client = FFXIVClientStructs.FFXIV.Client;
 
-namespace MoogleEats.Services.Injected;
+namespace PizzaTime.Services.Injected;
 
 internal sealed unsafe class ClientStructServices
 {
-    internal static Client.UI.Agent.AgentMap? AgentMap {
+    internal static Client.UI.Agent.AgentMap? AgentMap
+    {
         get
         {
             var agentMap = Client.UI.Agent.AgentMap.Instance();

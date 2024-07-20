@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace MoogleEats.Shared;
+namespace PizzaTime.Shared;
 
 internal readonly record struct LocationInfo
 {

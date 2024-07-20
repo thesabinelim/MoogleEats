@@ -1,7 +1,7 @@
 using Discord.Webhook;
 using System.Threading.Tasks;
 
-namespace MoogleEats.Services;
+namespace PizzaTime.Services;
 
 internal sealed class DiscordService(string discordWebhookUrl)
 {

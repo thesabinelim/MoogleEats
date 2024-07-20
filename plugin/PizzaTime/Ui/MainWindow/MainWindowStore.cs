@@ -1,6 +1,6 @@
-using static MoogleEats.Ui.MainWindow.Tabs;
+using static PizzaTime.Ui.MainWindow.Tabs;
 
-namespace MoogleEats.Ui.MainWindow;
+namespace PizzaTime.Ui.MainWindow;
 
 internal sealed class MainWindowStore
 {

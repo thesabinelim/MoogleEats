@@ -1,8 +1,8 @@
 using Dalamud.Interface.Components;
 using ImGuiNET;
-using MoogleEats.Services;
+using PizzaTime.Services;
 
-namespace MoogleEats.Ui.MainWindow;
+namespace PizzaTime.Ui.MainWindow;
 
 internal sealed partial class Tabs
 {

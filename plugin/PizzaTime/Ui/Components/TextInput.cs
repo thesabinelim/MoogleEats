@@ -1,6 +1,6 @@
 using ImGuiNET;
 
-namespace MoogleEats.Ui;
+namespace PizzaTime.Ui;
 
 internal sealed partial class Components
 {

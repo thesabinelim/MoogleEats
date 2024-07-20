@@ -1,4 +1,4 @@
-namespace MoogleEats.Shared;
+namespace PizzaTime.Shared;
 
 internal class StringUtils
 {
