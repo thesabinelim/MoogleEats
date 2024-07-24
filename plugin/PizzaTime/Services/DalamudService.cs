@@ -3,6 +3,7 @@ using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Item = Lumina.Excel.GeneratedSheets.Item;
 using PlaceName = Lumina.Excel.GeneratedSheets.PlaceName;
 using Map = Lumina.Excel.GeneratedSheets.Map;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
@@ -13,6 +14,9 @@ using System;
 using Dalamud.Game;
 using System.Numerics;
 using PizzaTime.Shared;
+using System.Linq;
+using ImGuiNET;
+using Dalamud.Interface.Textures;
 
 namespace PizzaTime.Services;
 
@@ -22,6 +26,7 @@ internal sealed class DalamudService
     private readonly ICommandManager commandManager;
     private readonly IDataManager dataManager;
     private readonly IDalamudPluginInterface pluginInterface;
+    private readonly ITextureProvider textureProvider;
 
     public DalamudService(IDalamudPluginInterface pluginInterface)
     {
@@ -31,13 +36,15 @@ internal sealed class DalamudService
         if (injected == null
             || injected.ClientState == null
             || injected.CommandManager == null
-            || injected.DataManager == null)
+            || injected.DataManager == null
+            || injected.TextureProvider == null)
         {
             throw new Exception("Failed to inject Dalamud plugin services");
         }
         clientState = injected.ClientState;
         commandManager = injected.CommandManager;
         dataManager = injected.DataManager;
+        textureProvider = injected.TextureProvider;
     }
 
     internal Settings GetSettings()
@@ -155,6 +162,11 @@ internal sealed class DalamudService
             null => null,
             _ => "???",
         };
+    }
+
+    internal nint? GetIconImguiHandle(ushort iconId)
+    {
+        return textureProvider.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrDefault()?.ImGuiHandle;
     }
 
     private AreaInfo? getPlayerAreaInfo(ClientLanguage language)

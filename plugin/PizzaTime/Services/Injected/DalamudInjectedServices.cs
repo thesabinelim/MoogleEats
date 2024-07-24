@@ -11,4 +11,6 @@ internal sealed class DalamudInjectedServices
     internal ICommandManager? CommandManager { get; set; }
     [PluginService]
     internal IDataManager? DataManager { get; set; }
+    [PluginService]
+    internal ITextureProvider? TextureProvider { get; set; }
 }

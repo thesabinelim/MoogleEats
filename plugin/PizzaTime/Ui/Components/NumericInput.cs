@@ -9,6 +9,8 @@ internal sealed partial class Components
         ref int value
     )
     {
+        ImGui.PushItemWidth(120);
         ImGui.InputInt(label, ref value);
+        ImGui.PopItemWidth();
     }
 }

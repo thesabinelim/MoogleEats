@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using PizzaTime.Services;
 using ImGuiNET;
-using PizzaTime.Shared;
-using System.Numerics;
 using Dalamud.Game;
+using System.Numerics;
 
 namespace PizzaTime.Ui.MainWindow;
 
@@ -19,7 +18,7 @@ internal sealed partial class Tabs
         Pizza,
         GarlicBread,
         BubbleTea,
-        KidsMeal,
+        KidsMealCombo,
         Ratatouille,
         ArchonBurger
     }
@@ -28,16 +27,34 @@ internal sealed partial class Tabs
         { MenuItem.Pizza, "Pizza" },
         { MenuItem.GarlicBread, "Garlic Bread" },
         { MenuItem.BubbleTea, "Bubble Tea" },
-        { MenuItem.KidsMeal, "Kid's Meal" },
+        { MenuItem.KidsMealCombo, "Kid's Meal Combo" },
         { MenuItem.Ratatouille, "Ratatouille" },
         { MenuItem.ArchonBurger, "Archon Burger" },
+    };
+
+    internal static Dictionary<MenuItem, string> MenuItemDescriptions = new() {
+        { MenuItem.Pizza, "A simple-but-satisfying dish of thinly worked dough topped with tomatoes and cheese, baked in a wood-fired oven until crispy." },
+        { MenuItem.GarlicBread, "It's actually Flatbread." },
+        { MenuItem.BubbleTea, "It's actually Tsai tou Vounou." },
+        { MenuItem.KidsMealCombo, "Includes Pizza + Bubble Tea + Garlic Bread + toy" },
+        { MenuItem.Ratatouille, "This colorful dish consists of a variety of vegetables, sautéed in perilla oil and then simmered to enrich their combined flavor." },
+        { MenuItem.ArchonBurger, "Concocted by the staff at the Last Stand, this sandwich is as nutritionally sound as it is delicious." },
+    };
+
+    internal static Dictionary<MenuItem, ushort> MenuItemIcons = new() {
+        { MenuItem.Pizza, 24034 },
+        { MenuItem.GarlicBread, 24006 },
+        { MenuItem.BubbleTea, 24417 },
+        { MenuItem.KidsMealCombo, 40110 },
+        { MenuItem.Ratatouille, 24108 },
+        { MenuItem.ArchonBurger, 24039 },
     };
 
     internal static Dictionary<MenuItem, uint> MenuItemPrices = new() {
         { MenuItem.Pizza, 10000 },
         { MenuItem.GarlicBread, 5000 },
         { MenuItem.BubbleTea, 5000 },
-        { MenuItem.KidsMeal, 20000 },
+        { MenuItem.KidsMealCombo, 20000 },
         { MenuItem.Ratatouille, 20000 },
         { MenuItem.ArchonBurger, 10000 },
     };
@@ -111,6 +128,12 @@ internal sealed partial class Tabs
         foreach (MenuItem menuItem in Enum.GetValues(typeof(MenuItem)))
         {
             var count = store.Counts[menuItem];
+            var icon = dalamudService.GetIconImguiHandle(MenuItemIcons[menuItem]);
+            if (icon.HasValue)
+            {
+                ImGui.Image(icon.Value, new Vector2(64, 64));
+                ImGui.SameLine();
+            }
             NumericInput($"{MenuItemNames[menuItem]} (${MenuItemPrices[menuItem]:n0}g)", ref count);
             count = Math.Max(count, 0);
             store.Counts[menuItem] = count;
@@ -138,7 +161,7 @@ internal sealed partial class Tabs
             { MenuItem.Pizza, 0 },
             { MenuItem.GarlicBread, 0 },
             { MenuItem.BubbleTea, 0 },
-            { MenuItem.KidsMeal, 0 },
+            { MenuItem.KidsMealCombo, 0 },
             { MenuItem.Ratatouille, 0 },
             { MenuItem.ArchonBurger, 0 },
         };
