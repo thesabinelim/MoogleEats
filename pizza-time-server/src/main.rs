@@ -5,6 +5,8 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
+mod util;
+
 #[tokio::main]
 async fn main() {
     let app = Router::new()

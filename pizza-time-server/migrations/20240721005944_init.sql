@@ -76,7 +76,8 @@ CREATE DOMAIN address AS _address CHECK (
 CREATE TYPE orderstatus AS ENUM ('placed', 'dispatched', 'completed', 'cancelled');
 
 CREATE TABLE item (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    external_id char(12) NOT NULL UNIQUE,
     name varchar(128) NOT NULL,
     image_url varchar(128),
     price integer NOT NULL CHECK (price >= 0),
@@ -85,8 +86,11 @@ CREATE TABLE item (
     updated_at timestamp NOT NULL DEFAULT current_timestamp
 );
 
+CREATE INDEX item_by_external_id ON item USING HASH (external_id);
+
 CREATE TABLE order_details (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    external_id char(12) NOT NULL UNIQUE,
     status orderstatus NOT NULL DEFAULT 'placed',
     customer_lodestone_id integer NOT NULL,
     customer_first_name varchar(15) NOT NULL,
@@ -99,9 +103,11 @@ CREATE TABLE order_details (
     updated_at timestamp NOT NULL DEFAULT current_timestamp
 );
 
+CREATE INDEX order_details_by_external_id ON order_details USING HASH (external_id);
+
 CREATE TABLE order_item (
-    order_details uuid REFERENCES order_details,
-    item uuid REFERENCES item,
+    order_details SERIAL REFERENCES order_details,
+    item SERIAL REFERENCES item,
     quantity integer NOT NULL CHECK (quantity >= 0),
 
     PRIMARY KEY (order_details, item)
